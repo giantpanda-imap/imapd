@@ -6,64 +6,43 @@
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # ========================================================================
 
-# Program:	IMAP Toolkit Makefile for Windows 9x and Windows NT
+
+# Program:	IMAPD Makefile for Windows 9x and Windows NT
 #
 # Author:	Mark Crispin
 #
-# Date:		7 December 1989
+# Date:		5 November 1990
 # Last Edited:	30 August 2006
 
 
-COPY=copy
-CD=cd
-MAKE=nmake /nologo /f makefile.nt
-MKDIR=mkdir
-RD=rmdir /s /q
+ALERT=\\imapd.alert
+USERALERT=alert.txt
+SHUTDOWN=\\nologin
+ANO=\\anonymous.newsgroups
+NNTP=\\imapd.nntp
 
+C = ..\c-client
+CCLIENTLIB = $C\cclient.lib
+LIBS = $(CCLIENTLIB) ws2_32.lib winmm.lib advapi32.lib
+OSCOMPAT = /DWIN32 /D_WIN32_WINNT=0x0501
+VSCOMPAT = /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE
+CFLAGS= -I$C /MT /W3 $(OSCOMPAT) $(VSCOMPAT) -nologo $(EXTRACFLAGS) -DALERTFILE=\"$(ALERT)\" -DNNTPFILE=\"$(NNTP)\" -DUSERALERTFILE=\"$(USERALERT)\" -DANOFILE=\"$(ANO)\" -DSHUTDOWNFILE=\"$(SHUTDOWN)\"
 
-# Make the IMAP Toolkit
+imapd: $(CCLIENTLIB) imapd.obj
+	LINK /NOLOGO imapd.obj $(LIBS)
 
-build:	c-client mtest mailutil imapd ipopd
-	$(CD) c-client
-	$(MAKE)
-	$(CD) ..\mtest
-	$(MAKE)
-	$(CD) ..\mailutil
-	$(MAKE)
-	$(CD) ..\ipopd
-	$(MAKE)
-	$(CD) ..\imapd
-	$(MAKE)
-	$(CD) ..
+imapd.obj: $C\mail.h $C\misc.h $C\osdep.h
 
-c-client:
-	$(MKDIR) c-client
-	$(COPY) src\c-client\*.* c-client
-	$(COPY) src\charset\*.* c-client
-	$(COPY) src\osdep\nt\*.* c-client
-
-mtest:
-	$(MKDIR) mtest
-	$(COPY) src\mtest\*.* mtest
-
-mailutil:
-	$(MKDIR) mailutil
-	$(COPY) src\mailutil\*.* mailutil
-
-ipopd:
-	$(MKDIR) ipopd
-	$(COPY) src\ipopd\*.* ipopd
-
-imapd:
-	$(MKDIR) imapd
-	$(COPY) src\imapd\*.* imapd
+$(CCLIENTLIB):
+	@echo Make c-client first
+	false
 
 clean:
-	$(RD) c-client mtest mailutil ipopd imapd
+	del *.obj *.exe *.lib *.exp || rem
 
 # A monument to a hack of long ago and far away...
 love:
-	@echo 'not war?'
+	@echo not war?
